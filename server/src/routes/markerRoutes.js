@@ -1,6 +1,5 @@
 import express from 'express';
 import { createMarker, getMarkers, updateMarker, deleteMarker } from '../controllers/markerscontroller.js';
-import { authenticateToken } from '../middlewares/verifyToken.js';
 
 const router = express.Router();
 

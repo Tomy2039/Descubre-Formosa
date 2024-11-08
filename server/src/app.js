@@ -6,7 +6,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import connectDB from './db/db.js';
 import markerRoutes from './routes/markerRoutes.js';
-import authRoutes from './routes/authRoutes.js'
+import authRoutes from './routes/authRoutes.js';
 
 dotenv.config();
 
@@ -19,21 +19,26 @@ const __dirname = path.dirname(__filename);
 
 // Middlewares
 app.use(cors({
-  origin: 'http://localhost:5173',}));
+  origin: process.env.CORS_ORIGIN || 'http://localhost:5173', // Puedes configurar la URL de tu frontend aquí
+}));
 app.use(express.json());
-app.use(fileUpload({ useTempFiles: true, tempFileDir: './uploads'}));
+app.use(fileUpload({ tempFileDir: './src/uploads',useTempFiles: true }));
 
 // Servir imágenes locales
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Rutas
 app.use('/api/markers', markerRoutes);
-
-// Agregar las rutas de autenticación
 app.use('/api/auth', authRoutes);
 
 // Conexión a la base de datos
 connectDB();
+
+// Middleware de manejo de errores
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ message: 'Algo salió mal, por favor intenta de nuevo más tarde.' });
+});
 
 // Levantar servidor
 app.listen(PORT, () => {

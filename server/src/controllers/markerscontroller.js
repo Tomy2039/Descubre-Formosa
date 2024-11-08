@@ -1,11 +1,6 @@
 import Marker from '../models/markerModel.js';
-import cloudinary from '../db/cloudinary.js';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import { uploadImage, uploadAudio } from '../db/cloudinary.js'; // Asegúrate de que estas funciones estén bien importadas
 import fs from 'fs';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 // Crear un nuevo marcador
 export const createMarker = async (req, res) => {
@@ -23,36 +18,26 @@ export const createMarker = async (req, res) => {
     console.log("Datos del formulario:", req.body);
     console.log("Uso de Cloudinary:", useCloudinary);
 
+    // Solo procesar si se utiliza Cloudinary
     if ((useCloudinary === 'true' || useCloudinary === true) && req.files) {
+      // Carga de imagen
       if (req.files.image) {
-        try {
-          const imageResult = await cloudinary.uploader.upload(req.files.image.tempFilePath, { folder: 'markers' });
-          imageUrl = imageResult.secure_url;
-          console.log("Resultado de la imagen:", imageResult);
-          fs.unlinkSync(req.files.image.tempFilePath);
-        } catch (err) {
-          console.error("Error al subir la imagen a Cloudinary:", err);
-          return res.status(500).json({ message: 'Error al cargar la imagen en Cloudinary' });
-        }
+        const imagePath = req.files.image.tempFilePath;
+        const imageResult = await uploadImage(imagePath);
+        imageUrl = imageResult.secure_url;
+        fs.unlinkSync(imagePath); // Eliminar archivo temporal
       }
-      
 
+      // Carga de audio
       if (req.files.audio) {
-        try {
-          const audioResult = await cloudinary.uploader.upload(req.files.audio.tempFilePath, {
-            folder: 'markers/audios',
-            resource_type: 'video',
-          });
-          audioUrl = audioResult.secure_url;
-          console.log("Resultado del audio:", audioResult);
-          fs.unlinkSync(req.files.audio.tempFilePath);
-        } catch (err) {
-          console.error("Error al subir el audio a Cloudinary:", err);
-          return res.status(500).json({ message: 'Error al cargar el audio en Cloudinary' });
-        }
+        const audioPath = req.files.audio.tempFilePath;
+        const audioResult = await uploadAudio(audioPath);
+        audioUrl = audioResult.secure_url;
+        fs.unlinkSync(audioPath); // Eliminar archivo temporal
       }
     }
 
+    // Crear nuevo marcador
     const newMarker = new Marker({
       location: { lat, lng },
       name,
@@ -84,7 +69,7 @@ export const getMarkers = async (req, res) => {
 // Actualizar un marcador existente
 export const updateMarker = async (req, res) => {
   const { name, description, category, useCloudinary } = req.body;
-  
+
   if (!name || !description || !category) {
     return res.status(400).json({ message: 'Faltan campos obligatorios.' });
   }
@@ -96,9 +81,10 @@ export const updateMarker = async (req, res) => {
     if ((useCloudinary === 'true' || useCloudinary === true) && req.files) {
       if (req.files.image) {
         try {
-          const imageResult = await cloudinary.uploader.upload(req.files.image.tempFilePath, { folder: 'markers' });
+          const imagePath = req.files.image.tempFilePath;
+          const imageResult = await uploadImage(imagePath);
           updatedFields.image = imageResult.secure_url;
-          fs.unlinkSync(req.files.image.tempFilePath); // Eliminar archivo temporal
+          fs.unlinkSync(imagePath); // Eliminar archivo temporal
         } catch (err) {
           console.error("Error al subir la imagen en Cloudinary:", err);
           return res.status(500).json({ message: 'Error al cargar la imagen en Cloudinary' });
@@ -107,12 +93,10 @@ export const updateMarker = async (req, res) => {
 
       if (req.files.audio) {
         try {
-          const audioResult = await cloudinary.uploader.upload(req.files.audio.tempFilePath, {
-            folder: 'markers/audios',
-            resource_type: 'video',
-          });
+          const audioPath = req.files.audio.tempFilePath;
+          const audioResult = await uploadAudio(audioPath);
           updatedFields.audio = audioResult.secure_url;
-          fs.unlinkSync(req.files.audio.tempFilePath); // Eliminar archivo temporal
+          fs.unlinkSync(audioPath); // Eliminar archivo temporal
         } catch (err) {
           console.error("Error al subir el audio en Cloudinary:", err);
           return res.status(500).json({ message: 'Error al cargar el audio en Cloudinary' });

@@ -7,3 +7,17 @@ cloudinary.v2.config({
 });
 
 export default cloudinary.v2;
+
+export const uploadImage = async (filesPath) => {
+  return await cloudinary.uploader.upload(filesPath, {
+    folder: "imagenProyect",
+    resource_type: "image",
+  });
+};
+
+export const uploadAudio = async (filesPath) => {
+  return await cloudinary.uploader.upload(filesPath, {
+    folder: "audioProyect",
+    resource_type: "raw",
+  });
+};
