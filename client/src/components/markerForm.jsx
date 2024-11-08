@@ -44,20 +44,35 @@ const MarkerForm = ({
   const uploadFile = async (file) => {
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('upload_preset', 'my_preset');
+    formData.append('upload_preset', 'my_preset'); // Asegúrate de tener un preset configurado
 
     try {
-      const res = await fetch('https://api.cloudinary.com/v1_1/dkktczf96/upload', {
-        method: 'POST',
-        body: formData,
-      });
-      const data = await res.json();
-      return data.secure_url || null;
+        const res = await fetch('https://api.cloudinary.com/v1_1/dkktczf96/upload', {
+            method: 'POST',
+            body: formData,
+        });
+
+        // Verifica si la respuesta es exitosa
+        if (!res.ok) {
+            throw new Error(`Error en la respuesta: ${res.statusText}`);
+        }
+
+        const data = await res.json();
+        console.log('Respuesta de Cloudinary:', data); // Verifica que esta respuesta contiene la URL
+
+        if (data.secure_url) {
+            return data.secure_url; // Devuelve la URL de la imagen o audio subido
+        } else {
+            throw new Error('No se recibió una URL segura de Cloudinary');
+        }
     } catch (error) {
-      console.error('Error al subir el archivo a Cloudinary:', error);
-      return null;
+        console.error('Error al subir el archivo a Cloudinary:', error);
+        return null;
     }
   };
+
+  
+  
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
