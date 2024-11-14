@@ -4,7 +4,7 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import customIcon from '../assets/Formosa-removebg-preview.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
-import MarkerForm from './MarkerForm';
+import MarkerForm from './markerForm';
 
 // Configuración del icono de marcador personalizado con sombra
 const customMarkerIcon = L.icon({

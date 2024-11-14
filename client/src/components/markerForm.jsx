@@ -12,11 +12,11 @@ const MarkerForm = ({
   handleCloseForm,
 }) => {
   const [currentStep, setCurrentStep] = useState(1);
-  const [imageFile, setImageFile] = useState(null);
-  const [audioFile, setAudioFile] = useState(null);
+  const [imageFile, setImageFile] = useState();
+  const [audioFile, setAudioFile] = useState();
   const [isOpen, setIsOpen] = useState(false); // Estado para controlar la animación
-  const imageInputRef = useRef(null);
-  const audioInputRef = useRef(null);
+  const imageInputRef = useRef();
+  const audioInputRef = useRef();
 
   useEffect(() => {
     setIsOpen(true); // Cuando el componente se monta, activamos la animación de apertura
@@ -35,42 +35,69 @@ const MarkerForm = ({
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleMediaChange = (e) => {
-    const { files, name } = e.target;
-    if (name === "image") setImageFile(files[0]);
-    if (name === "audio") setAudioFile(files[0]);
-  };
-
-  const uploadFile = async (file) => {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('upload_preset', 'my_preset'); // Asegúrate de tener un preset configurado
-
+  const handleAudioChange = async (event) => {
+    const audioFile = event.target.files[0];
+    
+    if (!audioFile) {
+      console.log("No se seleccionó un archivo de audio.");
+      return;
+    }
+  
+    const audioData = new FormData();
+    audioData.append('file', audioFile);
+    audioData.append("upload_preset", "my_preset");
+  
     try {
-        const res = await fetch('https://api.cloudinary.com/v1_1/dkktczf96/upload', {
-            method: 'POST',
-            body: formData,
+      const response = await fetch('https://api.cloudinary.com/v1_1/dkktczf96/upload', {
+        method: 'POST',
+        body: audioData,
+      });
+  
+      const data = await response.json(); // Espera la respuesta JSON
+      console.log('Respuesta de Cloudinary para el audio:', data);
+  
+      if (data.secure_url) {
+        setFormData({
+          ...formData,
+          audio: data.secure_url,
         });
-
-        // Verifica si la respuesta es exitosa
-        if (!res.ok) {
-            throw new Error(`Error en la respuesta: ${res.statusText}`);
-        }
-
-        const data = await res.json();
-        console.log('Respuesta de Cloudinary:', data); // Verifica que esta respuesta contiene la URL
-
-        if (data.secure_url) {
-            return data.secure_url; // Devuelve la URL de la imagen o audio subido
-        } else {
-            throw new Error('No se recibió una URL segura de Cloudinary');
-        }
+      } else {
+        throw new Error('No se recibió una URL segura de Cloudinary para el audio');
+      }
     } catch (error) {
-        console.error('Error al subir el archivo a Cloudinary:', error);
-        return null;
+      console.error('Error al subir el archivo de audio:', error);
     }
   };
-
+  
+  const handleFileChange = async (event) => {
+    const file = event.target.files[0];
+    const uploadData = new FormData();
+    uploadData.append('file', file);
+    uploadData.append("upload_preset", "my_preset"); // Agregar el upload_preset aquí
+    
+    try {
+      const response = await fetch('https://api.cloudinary.com/v1_1/dkktczf96/upload', {
+        method: 'POST',
+        body: uploadData,
+      });
+  
+      const data = await response.json(); // Espera la respuesta JSON
+      console.log('Respuesta de Cloudinary:', data);
+  
+      if (data.secure_url) {
+        // Asigna la URL de la imagen a formData.image
+        setFormData({
+          ...formData,
+          image: data.secure_url,
+        });
+      } else {
+        throw new Error('No se recibió una URL segura de Cloudinary');
+      }
+    } catch (error) {
+      console.error('Error al subir el archivo:', error);
+    }
+  };
+  
   
   
 
@@ -82,40 +109,30 @@ const MarkerForm = ({
       return;
     }
   
-    let imageUrl = formData.image || null;
-    let audioUrl = formData.audio || null;
-  
-    if (imageFile) {
-      imageUrl = await uploadFile(imageFile);
-      if (!imageUrl) {
-        console.error("Error al subir la imagen.");
-        return;
-      }
-      if (imageInputRef.current) {
-        imageInputRef.current.value = null;
-      }
+    if (!formData.image) {
+      alert("Por favor, selecciona una imagen.");
+      return;
     }
-  
-    if (audioFile) {
-      audioUrl = await uploadFile(audioFile);
-      if (!audioUrl) {
-        console.error("Error al subir el audio.");
-        return;
-      }
-      if (audioInputRef.current) {
-        audioInputRef.current.value = null;
-      }
+
+    if (!formData.audio) {
+      alert("Por favor, selecciona un audio.");
+      return;
     }
   
     const requestData = {
-      ...formData,
-      image: imageUrl,
-      audio: audioUrl,
+      name: formData.name,
+      description: formData.description,
+      category: formData.category,
+      image: formData.image,
+      audio: formData.audio,
     };
-  
+    
     try {
       let response;
+  
+      // Verificar si estamos en modo edición (PUT) o en modo creación (POST)
       if (editMode) {
+        // Si estamos editando, hacer un PUT al backend
         response = await fetch(
           `http://localhost:4000/api/markers/${markers[currentMarkerIndex]._id}`,
           {
@@ -125,6 +142,7 @@ const MarkerForm = ({
           }
         );
       } else {
+        // Si estamos creando, hacer un POST al backend
         response = await fetch("http://localhost:4000/api/markers", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -138,20 +156,24 @@ const MarkerForm = ({
   
       const savedMarker = await response.json();
   
+      // Si estamos editando, actualizar el marcador correspondiente
       if (editMode) {
         const updatedMarkers = markers.map((marker, index) =>
           index === currentMarkerIndex ? savedMarker : marker
         );
         setMarkers(updatedMarkers);
       } else {
+        // Si estamos creando, añadir el nuevo marcador al estado
         setMarkers([...markers, savedMarker]);
       }
   
-      handleCloseForm(); 
+      handleCloseForm(); // Cerrar el formulario después de guardar
+  
     } catch (error) {
       console.error("Error al enviar el marcador:", error);
     }
   };
+  
 
   // Componente para manejar eventos de mapa y actualizar las coordenadas
   const LocationMarker = () => {
@@ -285,14 +307,14 @@ const MarkerForm = ({
               <input
                 type="file"
                 name="image"
-                onChange={handleMediaChange}
+                onChange={handleFileChange}
                 ref={imageInputRef}
                 className="my-2"
               />
               <input
                 type="file"
                 name="audio"
-                onChange={handleMediaChange}
+                onChange={handleAudioChange}
                 ref={audioInputRef}
                 className="my-2"
               />
@@ -336,3 +358,4 @@ const MarkerForm = ({
 };
 
 export default MarkerForm;
+
