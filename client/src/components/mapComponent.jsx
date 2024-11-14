@@ -4,7 +4,7 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import customIcon from '../assets/Formosa-removebg-preview.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
-import MarkerForm from './MarkerForm';
+import MarkerForm from './markerForm';
 
 // Configuración del icono de marcador personalizado con sombra
 const customMarkerIcon = L.icon({
@@ -131,7 +131,7 @@ const MapComponent = () => {
               <Popup>
                 <div className="card card-compact bg-base-100 w-64 shadow-xl">
                   <figure>
-                    {marker.image && <img src={marker.image} alt={marker.name} className="max-h-48 w-full object-cover" />}
+                    {marker.image && <img src={`http://localhost:4000/uploads/${marker.image}`} alt={marker.name} className="max-h-64 w-full object-cover" />}
                   </figure>
                   <div className="card-body p-3">
                     <h2 className="card-title text-sm">{marker.name}</h2>
@@ -149,8 +149,8 @@ const MapComponent = () => {
                     <h3 className="font-bold text-lg">{marker.name}</h3>
                     <p className="py-4">{marker.description}</p>
                     <p>Categoría: {marker.category}</p>
-                    {marker.image && <img src={marker.image} alt={marker.name} className="max-h-64 w-full object-cover" />}
-                    {marker.audio && <audio controls src={marker.audio} />}
+                    {marker.image && <img src={`http://localhost:4000/uploads/${marker.image}`} alt={marker.name} className="max-h-64 w-full object-cover" />}
+                    {marker.audio && <audio controls src={`http://localhost:4000/uploads/${marker.audio}`} />}
                     <div className="modal-action">
                       <form method="dialog">
                         <button className="btn">Cerrar</button>

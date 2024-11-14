@@ -12,11 +12,10 @@ const MarkerForm = ({
   handleCloseForm,
 }) => {
   const [currentStep, setCurrentStep] = useState(1);
-  const [imageFile, setImageFile] = useState(null);
-  const [audioFile, setAudioFile] = useState(null);
   const [isOpen, setIsOpen] = useState(false); // Estado para controlar la animación
-  const imageInputRef = useRef(null);
-  const audioInputRef = useRef(null);
+  const imageInputRef = useRef();
+  const audioInputRef = useRef();
+  
 
   useEffect(() => {
     setIsOpen(true); // Cuando el componente se monta, activamos la animación de apertura
@@ -35,45 +34,34 @@ const MarkerForm = ({
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleMediaChange = (e) => {
-    const { files, name } = e.target;
-    if (name === "image") setImageFile(files[0]);
-    if (name === "audio") setAudioFile(files[0]);
-  };
-
-  const uploadFile = async (file) => {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('upload_preset', 'my_preset'); // Asegúrate de tener un preset configurado
-
+  const handleFileChange = async (event) => {
+    const file = event.target.files[0];
+    const uploadData = new FormData();
+    uploadData.append('file', file);
+  
     try {
-        const res = await fetch('https://api.cloudinary.com/v1_1/dkktczf96/upload', {
-            method: 'POST',
-            body: formData,
-        });
-
-        // Verifica si la respuesta es exitosa
-        if (!res.ok) {
-            throw new Error(`Error en la respuesta: ${res.statusText}`);
-        }
-
-        const data = await res.json();
-        console.log('Respuesta de Cloudinary:', data); // Verifica que esta respuesta contiene la URL
-
-        if (data.secure_url) {
-            return data.secure_url; // Devuelve la URL de la imagen o audio subido
-        } else {
-            throw new Error('No se recibió una URL segura de Cloudinary');
-        }
+      const response = await fetch('http://localhost:4000/api/upload/upload', {
+        method: 'POST',
+        body: uploadData,
+      });
+  
+      const data = await response.json();
+      if (response.ok) {
+        console.log('Archivo subido correctamente:', data.url);
+        // Aquí debes actualizar `formData` directamente
+        setFormData((prevFormData) => ({
+          ...prevFormData,
+          [event.target.name]: data.url,
+        }));
+      } else {
+        console.error('Error subiendo archivo:', data);
+      }
     } catch (error) {
-        console.error('Error al subir el archivo a Cloudinary:', error);
-        return null;
+      console.error('Error al subir el archivo:', error);
     }
   };
-
   
   
-
   const handleFormSubmit = async (e) => {
     e.preventDefault();
   
@@ -82,58 +70,32 @@ const MarkerForm = ({
       return;
     }
   
-    let imageUrl = formData.image || null;
-    let audioUrl = formData.audio || null;
-  
-    if (imageFile) {
-      imageUrl = await uploadFile(imageFile);
-      if (!imageUrl) {
-        console.error("Error al subir la imagen.");
-        return;
-      }
-      if (imageInputRef.current) {
-        imageInputRef.current.value = null;
-      }
+    if (!formData.image || !formData.audio) {
+      alert("Por favor, selecciona tanto una imagen como un audio antes de enviar.");
+      return;
     }
-  
-    if (audioFile) {
-      audioUrl = await uploadFile(audioFile);
-      if (!audioUrl) {
-        console.error("Error al subir el audio.");
-        return;
-      }
-      if (audioInputRef.current) {
-        audioInputRef.current.value = null;
-      }
-    }
-  
-    const requestData = {
-      ...formData,
-      image: imageUrl,
-      audio: audioUrl,
-    };
   
     try {
       let response;
+  
       if (editMode) {
-        response = await fetch(
-          `http://localhost:4000/api/markers/${markers[currentMarkerIndex]._id}`,
-          {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(requestData),
-          }
-        );
+        response = await fetch(`http://localhost:4000/api/markers/${markers[currentMarkerIndex]._id}`, {
+          method: "PUT",
+          body: JSON.stringify(formData),
+          headers: { 'Content-Type': 'application/json' },
+        });
       } else {
         response = await fetch("http://localhost:4000/api/markers", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(requestData),
+          body: JSON.stringify(formData),
+          headers: { 'Content-Type': 'application/json' },
         });
       }
   
       if (!response.ok) {
-        throw new Error("Error al guardar el marcador en la base de datos");
+        const errorResponse = await response.text();
+        console.error("Error del servidor:", errorResponse);
+        throw new Error(`Error al guardar el marcador en la base de datos: ${errorResponse}`);
       }
   
       const savedMarker = await response.json();
@@ -147,11 +109,14 @@ const MarkerForm = ({
         setMarkers([...markers, savedMarker]);
       }
   
-      handleCloseForm(); 
+      handleCloseForm();
     } catch (error) {
       console.error("Error al enviar el marcador:", error);
+      alert("Hubo un error al guardar el marcador.");
     }
   };
+  
+  
 
   // Componente para manejar eventos de mapa y actualizar las coordenadas
   const LocationMarker = () => {
@@ -239,12 +204,10 @@ const MarkerForm = ({
         <form onSubmit={handleFormSubmit}>
           {currentStep === 1 && (
             <>
-              <p style={ { textAlign: "center"}}>Selecciona la ubicación en el mapa.</p>
+              <p style={{ textAlign: "center" }}>Selecciona la ubicación en el mapa.</p>
               <div style={{ height: "300px" }}>
                 <MapContainer center={[formData.lat || -34.6037, formData.lng || -58.3816]} zoom={13} style={{ height: "100%" }}>
-                  <TileLayer
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                  />
+                  <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
                   <LocationMarker />
                 </MapContainer>
               </div>
@@ -267,7 +230,7 @@ const MarkerForm = ({
                 value={formData.name}
                 onChange={handleInputChange}
                 required
-                className='w-full border border-gray-300 rounded-md p-2'
+                className="w-full border border-gray-300 rounded-md p-2"
               />
               <textarea
                 name="description"
@@ -282,51 +245,67 @@ const MarkerForm = ({
           )}
           {currentStep === 3 && (
             <>
+              <label>Imagen:</label>
               <input
                 type="file"
                 name="image"
-                onChange={handleMediaChange}
                 ref={imageInputRef}
                 className="my-2"
+                accept="image/*"
+                onChange={handleFileChange} // Guardamos el archivo en el estado
               />
+              <label htmlFor="audioInput">Selecciona un audio:</label>
               <input
                 type="file"
                 name="audio"
-                onChange={handleMediaChange}
                 ref={audioInputRef}
-                className="my-2"
+                accept="audio/*"
+                onChange={handleFileChange}
               />
             </>
           )}
           {currentStep === 4 && (
-            <>
-              <select
-                name="category"
-                value={formData.category}
-                onChange={handleInputChange}
-                className="w-full border border-gray-300 rounded-md p-2"
-                required
-              >
-                <option value="">Seleccione una categoría</option>
-                <option value="escuela">Escuela</option>
-                <option value="monumento">Monumento</option>
-                <option value="museo">Museo</option>
-                <option value="mastil">Mástil</option>
-                <option value="ferrocarril">Ferrocarril</option>
-                <option value="municipalidad">Municipalidad</option>
-              </select>
-            </>
+            <select
+              name="category"
+              value={formData.category}
+              onChange={handleInputChange}
+              required
+              className="w-full border border-gray-300 rounded-md p-2"
+            >
+              <option value="">Selecciona una categoría</option>
+              <option value="escuela">Escuela</option>
+              <option value="monumento">Monumento</option>
+              <option value="museo">Museo</option>
+              <option value="mástil">Mástil</option>
+              <option value="ferrocarril">Ferrocarril</option>
+              <option value="municipalidad">Municipalidad</option>
+            </select>
           )}
-
-          <div className="modal-action">
+          <div className="mt-4 flex justify-between">
             {currentStep > 1 && (
-              <button type="button" onClick={handlePrevious} className="btn btn-secondary">Atrás</button>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={handlePrevious}
+              >
+                Atras
+              </button>
             )}
-            {currentStep < 4 && (
-              <button type="button" onClick={handleNext} className="btn btn-primary">Siguiente</button>
-            )}
-            {currentStep === 4 && (
-              <button type="submit" className="btn btn-success">Guardar</button>
+            {currentStep < 4 ? (
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={handleNext}
+              >
+                Siguiente
+              </button>
+            ) : (
+              <button
+                type="submit"
+                className="btn btn-primary"
+              >
+                {editMode ? "Actualizar" : "Crear"} Marcador
+              </button>
             )}
           </div>
         </form>

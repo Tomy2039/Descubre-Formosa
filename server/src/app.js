@@ -1,12 +1,12 @@
 import express from 'express';
 import cors from 'cors';
-import fileUpload from 'express-fileupload';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import connectDB from './db/db.js';
 import markerRoutes from './routes/markerRoutes.js';
 import authRoutes from './routes/authRoutes.js';
+import uploadRoutes from './routes/uploadRoutes.js';
 
 dotenv.config();
 
@@ -22,14 +22,14 @@ app.use(cors({
   origin: process.env.CORS_ORIGIN || 'http://localhost:5173', // Puedes configurar la URL de tu frontend aquí
 }));
 app.use(express.json());
-app.use(fileUpload({ tempFileDir: './src/uploads',useTempFiles: true }));
 
-// Servir imágenes locales
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// Servir los archivos de la carpeta `uploads` como archivos estáticos
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Rutas
 app.use('/api/markers', markerRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/upload', uploadRoutes);
 
 // Conexión a la base de datos
 connectDB();
