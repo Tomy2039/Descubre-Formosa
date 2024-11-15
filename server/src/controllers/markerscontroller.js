@@ -4,38 +4,19 @@ import fs from 'fs';
 
 // Crear un nuevo marcador
 export const createMarker = async (req, res) => {
-  const { lat, lng, name, description, category, useCloudinary } = req.body;
-
+  const { lat, lng, name, description, category, useCloudinary, image, audio } = req.body;
+console.log(req.body)
   if (!lat || !lng || !name || !description || !category) {
     return res.status(400).json({ message: 'Faltan campos obligatorios.' });
   }
 
   try {
-    let imageUrl = '';
-    let audioUrl = '';
+    // let imageUrl = '';
+    // let audioUrl = '';
 
     console.log("Archivos recibidos:", req.files);
     console.log("Datos del formulario:", req.body);
     console.log("Uso de Cloudinary:", useCloudinary);
-
-    // Solo procesar si se utiliza Cloudinary
-    if ((useCloudinary === 'true' || useCloudinary === true) && req.files) {
-      // Carga de imagen
-      if (req.files.image) {
-        const imagePath = req.files.image.tempFilePath;
-        const imageResult = await uploadImage(imagePath);
-        imageUrl = imageResult.secure_url;
-        fs.unlinkSync(imagePath); // Eliminar archivo temporal
-      }
-
-      // Carga de audio
-      if (req.files.audio) {
-        const audioPath = req.files.audio.tempFilePath;
-        const audioResult = await uploadAudio(audioPath);
-        audioUrl = audioResult.secure_url;
-        fs.unlinkSync(audioPath); // Eliminar archivo temporal
-      }
-    }
 
     // Crear nuevo marcador
     const newMarker = new Marker({
@@ -43,8 +24,8 @@ export const createMarker = async (req, res) => {
       name,
       description,
       category,
-      image: imageUrl || undefined,
-      audio: audioUrl || undefined,
+      image,
+      audio
     });
 
     await newMarker.save();

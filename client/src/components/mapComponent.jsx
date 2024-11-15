@@ -121,81 +121,106 @@ const MapComponent = () => {
 
   return (
     <>
-      <MapContainer center={[-26.1855, -58.1729]} zoom={13} style={{ height: "93vh", width: "100%" }}>
-        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-        <MapClickHandler />
+    <div className='bg-yellow-200 h-10 flex items-center justify-center'>
+      <h1 className='text-2xl font-bold text-orange-800'>Pulsa en el mapa para agregar un marcador</h1>
+    </div>
+  <MapContainer center={[-26.1855, -58.1729]} zoom={13} style={{ height: "94vh", width: "100%" }}>
+    <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+    <MapClickHandler />
 
-        {markers.map((marker, idx) => (
-          marker.location && marker.location.lat !== undefined && marker.location.lng !== undefined ? (
-            <Marker key={idx} position={[marker.location.lat, marker.location.lng]} icon={customMarkerIcon}>
-              <Popup>
-                <div className="card card-compact bg-base-100 w-64 shadow-xl">
-                  <figure>
-                    {marker.image && <img src={marker.image} alt={marker.name} className="max-h-48 w-full object-cover" />}
-                  </figure>
-                  <div className="card-body p-3">
-                    <h2 className="card-title text-sm">{marker.name}</h2>
-                    <p className="text-xs">Categoría: {marker.category}</p>
-                    <div className="card-actions justify-end">
-                      <button className="btn btn-primary btn-xs" onClick={() => handleEditMarker(idx)}>Editar</button>
-                      <button className="btn btn-error btn-xs" onClick={() => handleDeleteMarker(idx)}>Eliminar</button>
-                      <button className="btn btn-xs" onClick={() => document.getElementById('my_modal_1').showModal()}>Ver Más</button>
-                    </div>
-                  </div>
+    {markers.map((marker, idx) => (
+      marker.location && marker.location.lat !== undefined && marker.location.lng !== undefined ? (
+        <Marker key={idx} position={[marker.location.lat, marker.location.lng]} icon={customMarkerIcon}>
+          <Popup>
+            <div className="card card-compact bg-base-100 w-64 shadow-xl">
+              <figure>
+                {marker.image && (
+                  <img 
+                    src={marker.image} 
+                    alt={marker.name} 
+                    className="max-h-48 w-full object-cover" 
+                    onError={(e) => e.target.src = '/path/to/default/image.jpg'} // Fallback image if broken
+                  />
+                )}
+              </figure>
+              <div className="card-body p-3">
+                <h2 className="card-title text-sm">{marker.name}</h2>
+                <p className="text-xs">Categoría: {marker.category}</p>
+                <div className="card-actions justify-end">
+                  <button className="btn btn-primary btn-xs" onClick={() => handleEditMarker(idx)}>Editar</button>
+                  <button className="btn btn-error btn-xs" onClick={() => handleDeleteMarker(idx)}>Eliminar</button>
+                  <button className="btn btn-xs" onClick={() => document.getElementById('my_modal_1').showModal()}>Ver Más</button>
                 </div>
+              </div>
+            </div>
 
-                <dialog id="my_modal_1" className="modal">
-                  <div className="modal-box">
-                    <h3 className="font-bold text-lg">{marker.name}</h3>
-                    <p className="py-4">{marker.description}</p>
-                    <p>Categoría: {marker.category}</p>
-                    {marker.image && <img src={marker.image} alt={marker.name} className="max-h-64 w-full object-cover" />}
-                    {marker.audio && <audio controls src={marker.audio} />}
-                    <div className="modal-action">
-                      <form method="dialog">
-                        <button className="btn">Cerrar</button>
-                      </form>
-                    </div>
-                  </div>
-                </dialog>
-              </Popup>
-            </Marker>
-          ) : null
-        ))}
+            <dialog id="my_modal_1" className="modal">
+              <div className="modal-box">
+                <h3 className="font-bold text-lg">{marker.name}</h3>
+                <p className="py-4">{marker.description}</p>
+                <p>Categoría: {marker.category}</p>
+                {marker.image && (
+                  <img 
+                    src={marker.image} 
+                    alt={marker.name} 
+                    className="max-h-64 w-full object-cover" 
+                    onError={(e) => e.target.src = '/path/to/default/image.jpg'} // Fallback for images
+                  />
+                )}
+                {marker.audio && (
+                  <audio controls>
+                    <source src={marker.audio} type="audio/mp3" />
+                    <source src={marker.audio} type="audio/wav" />
+                    <source src={marker.audio} type="audio/ogg" />
+                    Your browser does not support the audio element.
+                  </audio>
+                )}
+                <div className="modal-action">
+                  <form method="dialog">
+                    <button className="btn">Cerrar</button>
+                  </form>
+                </div>
+              </div>
+            </dialog>
+          </Popup>
+        </Marker>
+      ) : null
+    ))}
 
-        {isDraggableMarkerActive && (
-          <Marker
-            position={[formData.lat, formData.lng]}
-            icon={customMarkerIcon}
-            draggable={true}
-            eventHandlers={{
-              dragend: handleDragEnd,
-            }}
-          >
-            <Popup>
-              <h3>Marcador editable</h3>
-              <p>Latitud: {formData.lat}</p>
-              <p>Longitud: {formData.lng}</p>
-            </Popup>
-          </Marker>
-        )}
-      </MapContainer>
+    {isDraggableMarkerActive && (
+      <Marker
+        position={[formData.lat, formData.lng]}
+        icon={customMarkerIcon}
+        draggable={true}
+        eventHandlers={{
+          dragend: handleDragEnd,
+        }}
+      >
+        <Popup>
+          <h3>Marcador editable</h3>
+          <p>Latitud: {formData.lat}</p>
+          <p>Longitud: {formData.lng}</p>
+        </Popup>
+      </Marker>
+    )}
+  </MapContainer>
 
-      {showForm && (
-        <MarkerForm
-          formData={formData}
-          setFormData={setFormData}
-          editMode={editMode}
-          setMarkers={setMarkers}
-          markers={markers}
-          currentMarkerIndex={currentMarkerIndex}
-          handleCloseForm={handleCloseForm}
-          currentStep={currentStep}
-          handleNextStep={handleNextStep}
-          handlePrevStep={handlePrevStep}
-        />
-      )}
-    </>
+  {showForm && (
+    <MarkerForm
+      formData={formData}
+      setFormData={setFormData}
+      editMode={editMode}
+      setMarkers={setMarkers}
+      markers={markers}
+      currentMarkerIndex={currentMarkerIndex}
+      handleCloseForm={handleCloseForm}
+      currentStep={currentStep}
+      handleNextStep={handleNextStep}
+      handlePrevStep={handlePrevStep}
+    />
+  )}
+</>
+
   );
 };
 

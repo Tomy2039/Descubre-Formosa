@@ -11,7 +11,7 @@ const MarkerForm = ({
   currentMarkerIndex,
   handleCloseForm,
 }) => {
-  const [currentStep, setCurrentStep] = useState(1);
+  const [currentStep, setCurrentStep] = useState(editMode ? 2 : 1); // Empieza en el paso 2 si estamos en edición
   const [imageFile, setImageFile] = useState();
   const [audioFile, setAudioFile] = useState();
   const [isOpen, setIsOpen] = useState(false); // Estado para controlar la animación
@@ -98,8 +98,6 @@ const MarkerForm = ({
     }
   };
   
-  
-  
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
@@ -109,23 +107,6 @@ const MarkerForm = ({
       return;
     }
   
-    if (!formData.image) {
-      alert("Por favor, selecciona una imagen.");
-      return;
-    }
-
-    if (!formData.audio) {
-      alert("Por favor, selecciona un audio.");
-      return;
-    }
-  
-    const requestData = {
-      name: formData.name,
-      description: formData.description,
-      category: formData.category,
-      image: formData.image,
-      audio: formData.audio,
-    };
     
     try {
       let response;
@@ -138,16 +119,23 @@ const MarkerForm = ({
           {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(requestData),
+            body: JSON.stringify(formData),
           }
         );
+
+        console.log(response)
+
       } else {
         // Si estamos creando, hacer un POST al backend
         response = await fetch("http://localhost:4000/api/markers", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(requestData),
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(formData),
         });
+
+        console.log(response)
       }
   
       if (!response.ok) {
@@ -259,97 +247,103 @@ const MarkerForm = ({
         </ul>
 
         <form onSubmit={handleFormSubmit}>
-          {currentStep === 1 && (
+          {currentStep === 1 && !editMode && (  // Solo mostrar si no estamos en modo de edición
             <>
               <p style={ { textAlign: "center"}}>Selecciona la ubicación en el mapa.</p>
               <div style={{ height: "300px" }}>
-                <MapContainer center={[formData.lat || -34.6037, formData.lng || -58.3816]} zoom={13} style={{ height: "100%" }}>
-                  <TileLayer
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                  />
+                <MapContainer center={[formData.lat || -34.6037, formData.lng || -58.3816]} zoom={13} style={{ width: "100%", height: "100%" }}>
+                  <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
                   <LocationMarker />
                 </MapContainer>
               </div>
-              <label>
-                Latitud:
-                <input type="number" name="lat" value={formData.lat} onChange={handleInputChange} step="any" readOnly />
-              </label>
-              <label>
-                Longitud:
-                <input type="number" name="lng" value={formData.lng} onChange={handleInputChange} step="any" readOnly />
-              </label>
             </>
           )}
+
           {currentStep === 2 && (
             <>
               <input
                 type="text"
                 name="name"
-                placeholder="Nombre"
                 value={formData.name}
                 onChange={handleInputChange}
+                placeholder="Nombre"
                 required
-                className='w-full border border-gray-300 rounded-md p-2'
+                className="input input-bordered w-full mb-4"
               />
               <textarea
                 name="description"
-                placeholder="Descripción"
                 value={formData.description}
                 onChange={handleInputChange}
+                placeholder="Descripción"
                 required
-                rows="5"
-                className="h-32 w-full border border-gray-300 rounded-md p-2"
-              />
+                className="h-44 textarea textarea-bordered w-full mb-4"
+              ></textarea>
             </>
           )}
+
           {currentStep === 3 && (
             <>
+            <label>Imagen:</label>
               <input
                 type="file"
-                name="image"
+                accept="image/*"
                 onChange={handleFileChange}
                 ref={imageInputRef}
-                className="my-2"
+                className="file-input file-input-bordered file-input-warning w-full mb-4"
               />
+              <label>Audio:</label>
               <input
                 type="file"
-                name="audio"
+                accept="audio/*"
                 onChange={handleAudioChange}
                 ref={audioInputRef}
-                className="my-2"
+                className="file-input file-input-bordered file-input-error w-full mb-4"
               />
             </>
           )}
+
           {currentStep === 4 && (
             <>
               <select
                 name="category"
                 value={formData.category}
                 onChange={handleInputChange}
-                className="w-full border border-gray-300 rounded-md p-2"
-                required
+                className="select select-bordered w-full mb-4"
               >
-                <option value="">Seleccione una categoría</option>
-                <option value="escuela">Escuela</option>
-                <option value="monumento">Monumento</option>
-                <option value="museo">Museo</option>
-                <option value="mastil">Mástil</option>
-                <option value="ferrocarril">Ferrocarril</option>
-                <option value="municipalidad">Municipalidad</option>
+                <option value="school">Escuela</option>
+                <option value="monument">Monumento</option>
+                <option value="museum">Museo</option>
+                <option value="mast">Mástil</option>
+                <option value="railroad">Ferrocarril</option>
+                <option value="municipality">Municipalidad</option>
               </select>
             </>
           )}
 
-          <div className="modal-action">
-            {currentStep > 1 && (
-              <button type="button" onClick={handlePrevious} className="btn btn-secondary">Atrás</button>
-            )}
-            {currentStep < 4 && (
-              <button type="button" onClick={handleNext} className="btn btn-primary">Siguiente</button>
-            )}
-            {currentStep === 4 && (
-              <button type="submit" className="btn btn-success">Guardar</button>
-            )}
+          <div className="flex justify-between mt-4">
+            <button
+              type="button"
+              onClick={handlePrevious}
+              className="btn btn-outline btn-warning"
+              disabled={currentStep === 1}
+            >
+              Anterior
+            </button>
+            <button
+              type="button"
+              onClick={handleNext}
+              className="btn btn-outline btn-warning"
+              disabled={currentStep === 4}
+            >
+              Siguiente
+            </button>
+            <button
+              type="submit"
+              className="btn btn-outline btn-success"
+              disabled={currentStep < 4}
+            >
+              {editMode ? 'Actualizar' : 'Crear'}
+            </button>
           </div>
         </form>
       </div>
@@ -358,4 +352,3 @@ const MarkerForm = ({
 };
 
 export default MarkerForm;
-
