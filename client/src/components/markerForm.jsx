@@ -107,7 +107,7 @@ const MarkerForm = ({
       return;
     }
   
-    
+  
     try {
       let response;
   
@@ -185,8 +185,20 @@ const MarkerForm = ({
     });
 
     return formData.lat && formData.lng ? (
-      <Marker position={[formData.lat, formData.lng]}>
-        <Popup>Ubicación seleccionada</Popup>
+      <Marker position={[formData.lat, formData.lng]}
+        draggable={true}
+        eventHandlers={{
+          dragend: (e) => {
+            const { lat, lng } = e.target.getLatLng();
+            setFormData({
+              ...formData,
+              lat: lat, 
+              lng: lng, 
+            });
+          }
+        }}>
+        <Popup>Latitud.{formData.lat.toFixed(17)} <br/>
+        Longitud.{formData.lng.toFixed(17)}</Popup>
       </Marker>
     ) : null;
   };
@@ -310,6 +322,7 @@ const MarkerForm = ({
                 onChange={handleInputChange}
                 className="select select-bordered w-full mb-4"
               >
+                <option value="">Seleccione una categoría</option>
                 <option value="school">Escuela</option>
                 <option value="monument">Monumento</option>
                 <option value="museum">Museo</option>
