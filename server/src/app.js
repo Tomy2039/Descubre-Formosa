@@ -8,6 +8,7 @@ import connectDB from './db/db.js';
 import markerRoutes from './routes/markerRoutes.js';
 import eventRoutes from './routes/eventRoutes.js';
 import authRoutes from './routes/authRoutes.js';
+import galeryRoutes from './routes/galeryRoutes.js'
 
 dotenv.config();
 
@@ -32,6 +33,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/api/markers', markerRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/events', eventRoutes);
+app.use('/api/galery', galeryRoutes);
 
 // Conexión a la base de datos
 connectDB();

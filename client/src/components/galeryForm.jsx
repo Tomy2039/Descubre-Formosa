@@ -1,12 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-const EventForm = ({ event, editMode, onSave, onClose }) => {
-  const [formEvent, setFormEvent] = useState({
+const GaleryForm = ({ galery, editMode, onSave, onClose }) => {
+  const [formGalery, setFormGalery] = useState({
     name: '',
+    author: '',
     description: '',
-    date: '',
-    timeBegin: '',
-    timeEnd: '',
     image: null,
   });
 
@@ -14,32 +12,30 @@ const EventForm = ({ event, editMode, onSave, onClose }) => {
   const imageInputRef = useRef();
 
   useEffect(() => {
-    if (editMode && event) {
-      console.log("Evento recibido para edición:", event); // Verifica qué contiene 'event'
-      setFormEvent({
-        _id: event._id,
-        name: event.name || '',
-        description: event.description || '',
-        date: event.date || '',
-        timeBegin: event.timeBegin || '',
-        timeEnd: event.timeEnd || '',
-        image: event.image || null,
+    if (editMode && galery) {
+      console.log("Arte recibido para edición:", galery); // Verifica qué contiene 'event'
+      setFormGalery({
+        _id: galery._id,
+        name: galery.name || '',
+        author: galery.author || '',
+        description: galery.description || '',
+        image: galery.image || null,
       });
-      setPreview(event.image || null);  // Si es un evento editado, mostrar la imagen actual
+      setPreview(galery.image || null);  // Si es un evento editado, mostrar la imagen actual
     }
-  }, [editMode, event]);
+  }, [editMode, galery]);
   
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormEvent((prevEvent) => ({
-      ...prevEvent,
+    setFormGalery((prevGalery) => ({
+      ...prevGalery,
       [name]: value,
     }));
   };
 
-  const handleFileChange = async (event) => {
-    const file = event.target.files[0];
+  const handleFileChange = async (galery) => {
+    const file = galery.target.files[0];
     const uploadData = new FormData();
     uploadData.append('file', file);
     uploadData.append('upload_preset', 'DF_preset'); // Agregar el upload_preset aquí
@@ -55,8 +51,8 @@ const EventForm = ({ event, editMode, onSave, onClose }) => {
   
       if (data.secure_url) {
         // Asigna la URL de la imagen a formEvent.image
-        setFormEvent((prevEvent) => ({
-          ...prevEvent,
+        setFormGalery((prevGalery) => ({
+          ...prevGalery,
           image: data.secure_url,
         }));
         setPreview(data.secure_url);  // Actualiza la vista previa
@@ -72,18 +68,16 @@ const EventForm = ({ event, editMode, onSave, onClose }) => {
     e.preventDefault();
   
     const formData = {
-      name: formEvent.name,
-      description: formEvent.description,
-      date: formEvent.date,
-      timeBegin: formEvent.timeBegin,
-      timeEnd: formEvent.timeEnd,
-      image: formEvent.image,
+      name: formGalery.name,
+      author: formGalery.author,
+      description: formGalery.description,
+      image: formGalery.image,
     };
   
     try {
       let response;
-      if (editMode && formEvent._id) {
-        response = await fetch(`http://localhost:4000/api/events/${formEvent._id}`, {
+      if (editMode && formGalery._id) {
+        response = await fetch(`http://localhost:4000/api/galery/${formGalery._id}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -91,7 +85,7 @@ const EventForm = ({ event, editMode, onSave, onClose }) => {
           body: JSON.stringify(formData),
         });
       } else {
-        response = await fetch('http://localhost:4000/api/events', {
+        response = await fetch('http://localhost:4000/api/galery', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -101,11 +95,11 @@ const EventForm = ({ event, editMode, onSave, onClose }) => {
       }
   
       const data = await response.json();
-      console.log('Evento guardado:', data);
+      console.log('arte guardado:', data);
       onSave(data);
       onClose();
     } catch (error) {
-      console.error('Error al guardar el evento:', error);
+      console.error('Error al guardar el arte:', error);
     }
   };
   
@@ -119,7 +113,19 @@ const EventForm = ({ event, editMode, onSave, onClose }) => {
           type="text"
           id="name"
           name="name"
-          value={formEvent.name}
+          value={formGalery.name}
+          onChange={handleChange}
+          required
+          className="input input-bordered w-full mb-2"
+        />
+      </div>
+      <div>
+        <label htmlFor="author" className="block">Autor</label>
+        <input
+          type="text"
+          id="author"
+          name="author"
+          value={formGalery.author}
           onChange={handleChange}
           required
           className="input input-bordered w-full mb-2"
@@ -131,43 +137,7 @@ const EventForm = ({ event, editMode, onSave, onClose }) => {
           type="text"
           id="description"
           name="description"
-          value={formEvent.description}
-          onChange={handleChange}
-          required
-          className="input input-bordered w-full mb-2"
-        />
-      </div>
-      <div>
-        <label htmlFor="date" className="block">Fecha</label>
-        <input
-          type="date"
-          id="date"
-          name="date"
-          value={formEvent.date}
-          onChange={handleChange}
-          required
-          className="input input-bordered w-full mb-2"
-        />
-      </div>
-      <div>
-        <label htmlFor="timeBegin" className="block">Hora de inicio</label>
-        <input
-          type="time"
-          id="timeBegin"
-          name="timeBegin"
-          value={formEvent.timeBegin}
-          onChange={handleChange}
-          required
-          className="input input-bordered w-full mb-2"
-        />
-      </div>
-      <div>
-        <label htmlFor="timeEnd" className="block">Hora de fin</label>
-        <input
-          type="time"
-          id="timeEnd"
-          name="timeEnd"
-          value={formEvent.timeEnd}
+          value={formGalery.description}
           onChange={handleChange}
           required
           className="input input-bordered w-full mb-2"
@@ -189,7 +159,7 @@ const EventForm = ({ event, editMode, onSave, onClose }) => {
           </div>
         )}
       </div>
-      <button type="submit" className="btn btn-primary w-full">{editMode ? 'Actualizar Evento' : 'Crear Evento'}</button>
+      <button type="submit" className="btn btn-primary w-full">{editMode ? 'Actualizar Arte' : 'Crear Arte'}</button>
       <button
         type="button"
         onClick={onClose}
@@ -201,4 +171,4 @@ const EventForm = ({ event, editMode, onSave, onClose }) => {
   );
 };
 
-export default EventForm;
+export default GaleryForm;

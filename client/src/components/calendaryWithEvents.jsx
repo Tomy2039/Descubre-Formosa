@@ -91,7 +91,7 @@ const CollaboratorEvent = () => {
               selected={selectedDate}
               onChange={(date) => setSelectedDate(date)}
               dateFormat="dd/MM/yyyy"
-              className="input input-bordered input-primary w-96 text-center"
+              className="input input-bordered input-warning w-96 text-center"
             />
           </div>
 
@@ -102,7 +102,7 @@ const CollaboratorEvent = () => {
               placeholder="Buscar evento por nombre..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="input input-bordered input-primary w-full"
+              className="input input-bordered input-warning w-full"
             />
           </div>
 
@@ -119,7 +119,7 @@ const CollaboratorEvent = () => {
               filteredEvents.map((event) => (
                 <div
                   key={event._id}
-                  className="card bg-blue-300 p-4 rounded-lg shadow-md border-2 border-blue-500 cursor-pointer transition-transform hover:scale-105"
+                  className="card bg-yellow-200 p-4 rounded-lg shadow-md border-2 border-yellow-500 cursor-pointer transition-transform hover:scale-105"
                   onClick={() => handleViewEvent(event)} // Muestra el evento al hacer click
                 >
                   {event.image && (
@@ -162,7 +162,7 @@ const CollaboratorEvent = () => {
               <div className="flex justify-end space-x-4 mt-4">
                 <button
                   onClick={() => setSelectedEvent(null)} // Cerrar el modal
-                  className="btn btn-primary text-white"
+                  className="btn btn-warning text-white hover:text-yellow-700"
                 >
                   Cerrar
                 </button>
