@@ -6,6 +6,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import connectDB from './db/db.js';
 import markerRoutes from './routes/markerRoutes.js';
+import eventRoutes from './routes/eventRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 
 dotenv.config();
@@ -30,6 +31,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Rutas
 app.use('/api/markers', markerRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/events', eventRoutes);
 
 // Conexión a la base de datos
 connectDB();
