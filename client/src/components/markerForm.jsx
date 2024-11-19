@@ -12,8 +12,6 @@ const MarkerForm = ({
   handleCloseForm,
 }) => {
   const [currentStep, setCurrentStep] = useState(editMode ? 2 : 1); // Empieza en el paso 2 si estamos en edición
-  const [imageFile, setImageFile] = useState();
-  const [audioFile, setAudioFile] = useState();
   const [isOpen, setIsOpen] = useState(false); // Estado para controlar la animación
   const imageInputRef = useRef();
   const audioInputRef = useRef();

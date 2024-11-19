@@ -9,6 +9,7 @@ import markerRoutes from './routes/markerRoutes.js';
 import eventRoutes from './routes/eventRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 import galeryRoutes from './routes/galeryRoutes.js'
+import songRoutes from './routes/songRoutes.js'
 
 dotenv.config();
 
@@ -34,6 +35,7 @@ app.use('/api/markers', markerRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/galery', galeryRoutes);
+app.use('/api/song', songRoutes)
 
 // Conexión a la base de datos
 connectDB();

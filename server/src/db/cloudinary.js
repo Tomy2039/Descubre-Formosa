@@ -21,3 +21,11 @@ export const uploadAudio = async (filesPath) => {
     resource_type: "raw",
   });
 };
+
+export const uploadPDF = async (filesPath) => {
+  return await cloudinary.uploader.upload(filesPath, {
+    folder: "pdfProyect",
+    resource_type: "raw",
+    format: "pdf",
+  });
+};

@@ -78,9 +78,9 @@ const CollaboratorEvent = () => {
   };
 
   return (
-    <div className="p-6 bg-blue-200 min-h-screen">
+    <div className="p-6 bg-yellow-50 min-h-screen">
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-4xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-blue-700 mb-8 shadow-lg">
+        <h1 className="text-4xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r  bg-yellow-900 mb-8 shadow-lg">
           Mis Eventos
         </h1>
         <p className="text-center text-lg text-gray-800 mb-8 italic">
@@ -89,7 +89,7 @@ const CollaboratorEvent = () => {
         <div className="flex justify-center mb-6">
           <button
             onClick={handleAddEvent}
-            className="btn btn-primary px-6 py-3 text-white font-bold rounded-md shadow-xl hover:bg-blue-500 transform transition duration-200 ease-in-out"
+            className="btn btn-warning px-6 py-3 text-white font-bold rounded-md shadow-xl hover:bg-yellow-900 transform transition duration-200 ease-in-out"
           >
             Agregar Evento
           </button>
@@ -99,7 +99,7 @@ const CollaboratorEvent = () => {
           {events.map((event) => (
             <div
               key={event._id}
-              className="card bg-blue-300 p-4 rounded-lg shadow-md border-2 border-blue-500 cursor-pointer transition-transform hover:scale-105"
+              className="card bg-yellow-200 p-4 rounded-lg shadow-md border-2 border-yellow-500 cursor-pointer transition-transform hover:scale-105"
             >
               {event.image && (
                 <img
@@ -115,19 +115,19 @@ const CollaboratorEvent = () => {
               <div className="flex justify-center mt-2 space-x-4">
                 <button
                   onClick={() => handleEditEvent(event)}
-                  className="btn btn-info text-lg text-blue-700 hover:text-blue-600 font-semibold"
+                  className="btn btn-info text-lg text-yellow-200 hover:text-yellow-700 font-semibold"
                 >
                   Editar
                 </button>
                 <button
                   onClick={() => handleDeleteEvent(event._id)}
-                  className="btn btn-error text-lg text-red-600 hover:text-red-500 font-semibold"
+                  className="btn btn-error text-lg text-yellow-200 hover:text-yellow-700 font-semibold"
                 >
                   Eliminar
                 </button>
                 <button
                   onClick={() => setSelectedEvent(event)}
-                  className="btn btn-secondary text-lg text-blue-700 hover:text-blue-600 font-semibold"
+                  className="btn btn-secondary text-lg text-yellow-200 hover:text-yellow-700 font-semibold"
                 >
                   Ver Más
                 </button>
